@@ -1,2 +1,2 @@
 # GeometryOfClouds
-Computing connected components of data on a regulartriangle tiling
+Computing connected components of data on a regular triangle tiling
