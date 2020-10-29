@@ -366,7 +366,7 @@ def make_connected_3d_components (cube_coordinates, radius,
         # compute connected components in each height
         cloud_datafield= make_cloud_datafield (cube_coordinates, radius, height, print_datafield = False)
         component_datafield = make_connected_components (cloud_datafield, connectivity = connectivity, print_datafield = False)
-        height_component_list = make_list_of_components (component_datafield, cube_coordinates, print_list = False)
+        height_component_list = make_list_of_components (cube_coordinates, component_datafield, print_list = False)
         
         
         # write cloud data into 4d-matrix
