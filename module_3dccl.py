@@ -1,23 +1,40 @@
 ##### import modules #####
-
+# standard
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 import xarray as xr
+
+# for connected components module
 import sys
 sys.path.append('/pf/b/b380906/python-3.6-anaconda3-bleedingedge')
-import cc3d
+import cc3d # connected components algorithm
+
+# plotting
+import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 
-from helpfunctions import *
-from grid_specific_functions import *
+# 
+from grid_specific_functions import * # 
+from helpfunctions import * ## rename
+
 
     
 ##### main functions #####
 
-# function 1
-# determine cube coordinates of triangles
-def make_cube_coordinates (start_triangle, radius, print_progress=False): 
+# make_cube_coordinates:
+#   Assign to each triangle a 3d-coordinate called cube coordinate.
+# INPUT: 
+#   start_triangle      int         the triangle index where the algorithm starts
+#   radius              int         the radius where the iteration terminates
+#   print_progress      Boolean     print progress of iteration (default False)
+# OUTPUT: 
+#   Returns a list of arrays of the following form:
+#   np.array([<triangle index>, <cube array>])
+#   where <cube array> is an array with three entries encoding the cube coordinate of the triangle with <trinagle index>. 
+
+def make_cube_coordinates (start_triangle, 
+                           radius, 
+                           print_progress=False): 
     
     # initialization
     init = EnhancedTri(start_triangle, np.array([0,0,0])) # assign coordinates (0,0,0) to start_triangle
@@ -34,7 +51,7 @@ def make_cube_coordinates (start_triangle, radius, print_progress=False):
         # update outmost triangles
         outmost = cubing_next_round (coordinates, visitedTri, outmost, Edge_Colours)
         
-        # show progress if print_info is True
+        # show progress if print_progress is True
         if print_progress:
             print('Round ', n+1, 'has finished. Visited ', len(coordinates), \
                   'triangles, thereof ', len(outmost), 'new.')
@@ -43,26 +60,74 @@ def make_cube_coordinates (start_triangle, radius, print_progress=False):
     return shift_coordinates(coordinates, radius)
     
 
+    
+# make_connected_2d_components:
+#   Directly from cube coordinates, compute components-list containing triangle indices.
+# INPUT:
+#   cube_coordinates    list of arrays      output of make_cube_coordinates 
+#   radius              int                 same as in make_cube_coordiantes
+#   height              int                 only used for 3d grids
+#   print_list          Boolean             print output (default True)
+#   make_plot           Boolean             plot the components (default False)
+#   save_plot           Boolean             save plot (default False)
+#   save_name           string              name for save-file
+#   plot_title          string              title for plot
+# OUTPUT: 
+#   Returns a list of lists. 
+#   An inner list correspond to a connected component and contains all belonging triangle-indices.
 
-
-
-##########################################################
-def make_connected_2d_components (cube_coordinates, radius, height = None, connectivity = 'vertex', 
-                                  make_plot = False, save_plot = False, save_name = 'connected_components.pdf', 
+def make_connected_2d_components (cube_coordinates, 
+                                  radius, 
+                                  height = None, 
+                                  connectivity = 'vertex', 
+                                  make_plot = False, 
+                                  save_plot = False, 
+                                  save_name = 'connected_components.pdf', 
                                   plot_title = 'connected components on icon'): 
     
+    # generates a 3-dimensional array containing the field:
+    # if a triangle is covered, the field entry at the triangles cube coordinate is set to 1
     field_array = make_field_array (cube_coordinates, radius, height)
+    
+    # applies cc3d-module to compute connected components on field_array:
+    # yields a new 3-dimensional array 
+    # containing the connected component index of a triangle with cube coordinates (x,y,z) at position component_array[x][y][z]
     component_array = make_connected_components (field_array, connectivity)
+    
+    # a component list of triangle indices is generated for each connected component:
+    # returns a list containing all component lists
     component_list = make_list_of_components (cube_coordinates, component_array)
+   
+    # show plot if wanted
     if make_plot == True:
-        plotting(cube_coordinates, component_array, save_plot, save_name, plot_title)
+        plot_connected_2d_components (cube_coordinates, component_array, save_plot, save_name, plot_title)
     
     return component_list
 
-# function 5
-# compute connected components for data of several altitudes/heights
-def make_connected_3d_components (cube_coordinates, radius, connectivity = 'vertex', make_plot = False, save_plot = False, 
-                                  save_name = 'connected_components.pdf', plot_title = 'connected components on icon'):
+
+
+# make_connected_3d_components:
+#   For each height layer: Compute local connected component with functions make_connected_2d_components on this layer. 
+#   Append the found components to (global) component_list by component-wise insertion of tuples (triangle index, height). 
+#   Merge components if one contains the tuple (triangle index, height) and the other (triangle index, height-1) and update the list in this way.
+# INPUT:
+#   cube_coordinates    list of arrays      output of make_cube_coordinates
+#   radius              int                 same as in make_cube_coordinates
+#   print_list          Boolean             print output (default True)
+#   make_plot           Boolean             plot the components (default False)
+#   save_plot           Boolean             save plot (default False)
+#   save_name           string              name for save-file
+#   plot_title          string              title for plot
+# OUTPUT:
+#   Returns a list of lists.  An inner list correspond to a connected component and contains all belonging (triangle index, height)-tuples
+
+def make_connected_3d_components (cube_coordinates, 
+                                  radius, 
+                                  connectivity = 'vertex', 
+                                  make_plot = False, 
+                                  save_plot = False, 
+                                  save_name = 'connected_components.pdf', 
+                                  plot_title = 'connected components on icon'):
     
     # initialize layers
     layers = len(get_height()) # number of layers
@@ -99,25 +164,34 @@ def make_connected_3d_components (cube_coordinates, radius, connectivity = 'vert
                             if (triangle, height-1) not in new_list:
                                 
                                 # update component_list and new_list
-                                # VERBESSERUNGSWÜRDIG
                                 component.extend(new_list)
                                 component_list.remove(new_list)
                                 new_list = component
                                 break
-                                
-    print_component_list(component_list)
+    # show comonent_list                            
+    print_component_list (component_list)
       
     # show plot of final components if wanted
     if make_plot == True:
-        plotting_3d(component_list,  save_name, plot_title, save_plot)
+        plot_connected_3d_components (component_list,  save_name, plot_title, save_plot)
         
     return component_list
 
 
-# function 6.1
-# highlighting components in grid
-def plotting(cube_coordinates, component_array, 
-             save_plot = False, save_name = 'connected_components.pdf', plot_title = 'connected components on icon'):
+
+# plot_connected_2d_components:
+#   Show plot of coloured components in 3d-grid
+# INPUT: 
+#   component_list    list of lists   output of make_connected_2d_components
+#   save_name         string          name of save-file
+#   plot_title        string          title of the plot
+#   save_plot         Boolean         save plot (default False)
+
+def plot_connected_2d_components (cube_coordinates, 
+                                  component_array, 
+                                  save_plot = False, 
+                                  save_name = 'connected_components.pdf', 
+                                  plot_title = 'connected components on icon'):
     
     # initialization
     vertex = []
@@ -160,9 +234,15 @@ def plotting(cube_coordinates, component_array,
     plt.show()
 
 
-# function 6.2
-# highlighting components in grid
-def plotting_3d (component_list,  save_name = 'connected_components_3d.pdf', plot_title = 'connected components 3d', save_plot = False):
+# plot_connected_3d_components
+#   Show plot of coloured components in 3d-grid
+# INPUT: 
+#   component_list    list of lists   output of make_connected_3d_components
+#   save_name         string          name of save-file
+#   plot_title        string          title of the plot
+#   save_plot         Boolean         save plot (default False)
+
+def plot_connected_3d_components (component_list,  save_name = 'connected_components_3d.pdf', plot_title = 'connected components 3d', save_plot = False):
     
     # initialization
     vertex = []
@@ -170,7 +250,8 @@ def plotting_3d (component_list,  save_name = 'connected_components_3d.pdf', plo
     vlon = []
     fig = plt.figure()
     ax = plt.axes(projection="3d")
-
+    
+    # label axes
     ax.set_xlabel('longitude', fontsize=25)
     ax.set_ylabel('latitude',fontsize=25)
     ax.set_zlabel('height',fontsize=25)
@@ -199,10 +280,9 @@ def plotting_3d (component_list,  save_name = 'connected_components_3d.pdf', plo
     # size of the showed picture    
     plt.rcParams["figure.figsize"] = [60,20]
 
-    # title and axis labels
+    # title
     ax.set_title(plot_title, fontsize=30)
-    #plt.xlabel('longitude',fontsize=15); plt.ylabel('latitude',fontsize=15); plt.zlabel('height', frontsize=15)
- 
+     
     # save plot with name <save_name> if wanted
     if save_plot:
         plt.savefig(save_name)
