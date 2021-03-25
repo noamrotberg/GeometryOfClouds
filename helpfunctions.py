@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 import cc3d
 from mpl_toolkits.mplot3d import axes3d
-from outsourcing import *
+from grid_specific_functions import *
 
 
 # constant to transform radian to degree
