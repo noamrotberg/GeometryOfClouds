@@ -10,7 +10,7 @@ import cc3d
 from mpl_toolkits.mplot3d import axes3d
 
 from helpfunctions import *
-from outsourcing import *
+from grid_specific_functions import *
 
     
 ##### main functions #####
