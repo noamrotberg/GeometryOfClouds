@@ -38,26 +38,26 @@ def make_cube_coordinates (start_triangle,
     
     # initialization
     init = EnhancedTri(start_triangle, np.array([0,0,0])) # assign coordinates (0,0,0) to start_triangle
-    coordinates = [np.array([init.triangle, init.cube])]
-    visitedTri = [init.triangle]
-    outmost = [init]
+    cube_coordinates = [np.array([init.triangle, init.cube])]
+    visited_triangles = [init.triangle]
+    outmost = [init] # list for EnhancedTri that were added last round and thus lie "at the boundary of discovery"
     
     # colour the edges of start_triangle with 0,1,2
-    Edge_Colours = { get_edges_of_cell(start_triangle)[x] : x for x in (0,1,2) }
+    edge_colours = { get_edges_of_cell(start_triangle)[x] : x for x in (0,1,2) }
     
     # iterating
     for n in range (radius):
         
         # update outmost triangles
-        outmost = cubing_next_round (coordinates, visitedTri, outmost, Edge_Colours)
+        outmost = cubing_next_round (cube_coordinates, visited_triangles, outmost, edge_colours)
         
         # show progress if print_progress is True
         if print_progress:
-            print('Round ', n+1, 'has finished. Visited ', len(coordinates), \
+            print('Round ', n+1, 'has finished. Visited ', len(cube_coordinates), \
                   'triangles, thereof ', len(outmost), 'new.')
     
     # return coordinates after shifting them to positivity
-    return shift_coordinates(coordinates, radius)
+    return shift_coordinates(cube_coordinates, radius)
     
 
     
@@ -67,7 +67,7 @@ def make_cube_coordinates (start_triangle,
 #   cube_coordinates    list of arrays      output of make_cube_coordinates 
 #   radius              int                 same as in make_cube_coordiantes
 #   height              int                 only used for 3d grids
-#   print_list          Boolean             print output (default True)
+#   connectivity        string              use 'vertex' (default) or 'edge' connectivity
 #   make_plot           Boolean             plot the components (default False)
 #   save_plot           Boolean             save plot (default False)
 #   save_name           string              name for save-file
@@ -113,7 +113,7 @@ def make_connected_2d_components (cube_coordinates,
 # INPUT:
 #   cube_coordinates    list of arrays      output of make_cube_coordinates
 #   radius              int                 same as in make_cube_coordinates
-#   print_list          Boolean             print output (default True)
+#   connectivity        string              use 'vertex' (default) or 'edge' connectivity
 #   make_plot           Boolean             plot the components (default False)
 #   save_plot           Boolean             save plot (default False)
 #   save_name           string              name for save-file
