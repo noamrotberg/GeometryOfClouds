@@ -288,3 +288,31 @@ def plot_connected_3d_components (component_list,  save_name = 'connected_compon
         plt.savefig(save_name)
 
     plt.show()
+
+    
+    
+##### optional #####
+
+# Save cube_coordinates in a local ".npy"-file
+#   complete save_name is given by a composition of save_name_beginning, start_triangle and radius
+# INPUT:
+#   cube_coordinates    list of arrays      output of make_cube_coordinates
+#   start_triangle      int                 same as in make_cube_coordinates
+#   radius              int                 same as in make_cube_coordinates
+#   save_name_beginning string              beginning of name for save-title
+
+def save_cube_coordinates (cube_coordinates, start_triangle, radius, save_name_beginning = "cube_coordinates_ICON"):
+    save_name = save_name_beginning+ "-start_" + str(start_triangle) + "-radius_" + str(radius) # create save_name
+    np.save(save_name, cube_coordinates)
+
+    
+    
+# Load cube_coordinates from a local ".npy"-file
+# INPUT:
+#   load_name    string      same as complete save_name from save_cube_coordinates
+# OUTPUT:
+#   cube_coordinates    list of arrays      output of previously saved make_cube_coordinates
+
+def load_cube_coordinates (load_name):
+    cube_coordinates = np.load(load_name, allow_pickle=True)
+    return cube_coordinates
