@@ -156,7 +156,7 @@ def cubing_next_round (cube_coordinates, visited_triangles, outmost, edge_colour
     for old in outmost: # consider all EnhancedTri's at the border of visited
         for neigh in get_neighbors_of_cell( old.triangle ): # consider all neighbours
             new = EnhancedTri(neigh, 0)
-            if new.triangle != -9999: # use feature: triangles at the grid border claim to be adjacent to -9999
+            if new.triangle == -9999: # use feature: triangles at the grid border claim to be adjacent to -9999
                 break
             else:
                 if new.triangle not in visited_triangles: # EnhancedTri new has no cube_coordinate yet
